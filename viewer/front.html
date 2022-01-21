@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OpenSfM Front End</title>
+  <link rel="icon" href="data:,">
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>
+</head>
+
+<body onload="init()">
+
+  <script>
+
+    // function is called when the page is fully loaded
+    function init() {
+      // fint the file select component
+      const fileSelectElement = document.getElementById("fileSelect");
+      // set the function 'handleSelectedFiles' to be called every time the selected fiels change
+      fileSelectElement.addEventListener("change", handleSelectedFiles, false);
+      // get the fileList element on the page to hold the preview images
+      const fileList = document.getElementById("fileList");
+    }
+
+
+    function handleSelectedFiles() {
+      if (!this.files.length) {
+        fileList.innerHTML = "<p>No files selected!</p>";
+      } else {
+        fileList.innerHTML = "";
+        const list = document.createElement("ul");
+        fileList.appendChild(list);
+        for (let i = 0; i < this.files.length; i++) {
+          const li = document.createElement("li");
+          list.appendChild(li);
+
+          const img = document.createElement("img");
+          img.classList.add("obj");
+          img.file = this.files[i];
+          img.src = URL.createObjectURL(this.files[i]);
+          img.height = 60;
+          img.onload = function () {
+            URL.revokeObjectURL(this.src);
+          }
+          li.appendChild(img);
+          const info = document.createElement("span");
+          info.innerHTML = this.files[i].name + ": " + this.files[i].size + " bytes";
+          li.appendChild(info);
+        }
+      }
+    }
+
+    // upload all files to server
+    function sendFiles() {
+      const imgs = document.querySelectorAll(".obj");
+      for (let i = 0; i < imgs.length; i++) {
+        new FileUpload(imgs[i], imgs[i].file);
+      }
+    }
+
+    // upload a file to the server
+    function FileUpload(img, file) {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append("thefile", file);
+      xhr.open("POST", "http://localhost:8080/upload");
+      xhr.overrideMimeType('text/plain; charset=x-user-defined-binary');
+      xhr.send(fd);
+    }
+  </script>
+
+  <h1>Front end page</h1>
+  <p>Select image files to upload</p>
+  <form name="uploadForm">
+    <div>
+      <input id="fileSelect" type="file" name="myFiles" multiple accept="image/*">
+    </div>
+  </form>
+  <div>
+  </div>
+</body>
+
+<h2>Previews of selected images:</h2>
+<div id="fileList"></div>
+
+<h2>Upload Images</h2>
+<p>After selecting images, click button to upload them.</p>
+<button onclick="sendFiles()">Upload Files</button>
+
+
+<h2>Running OpenSFM</h2>
+<p>After uploading images, click button to run OpenSfM</p>
+<button onclick="window.location.href='/runOpenSfM'">Run</button>
+
+
+</html>

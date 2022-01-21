@@ -7,6 +7,9 @@ from flask import (
     abort,
     jsonify,
     Response,
+    request,
+    redirect,
+    json,
     send_file,
 )
 
@@ -24,6 +27,26 @@ datapath = None
 @app.route("/")
 def index():
     return send_file(os.path.join(app.static_folder, "index.html"))
+
+# additional route for the front end page (front.html)
+@app.route("/front")
+def front():
+    return send_file(os.path.join(app.static_folder, "front.html"))
+
+# route for the image file uploads
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    uploaded_file = request.files['thefile']
+    if uploaded_file.filename != '':
+        uploaded_file.save('viewer/uploads/' + uploaded_file.filename)
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+
+# route to start running OpenSfM
+@app.route('/runOpenSfM')
+def runOpenSfM():
+    print("Now we should run OpenSfM on the uploaded images")
+    return redirect("/front")
+
 
 
 @app.route("/items")
